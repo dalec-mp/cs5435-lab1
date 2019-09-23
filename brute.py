@@ -1,4 +1,9 @@
 from csv import reader
+import sys
+sys.path.append('app/util')
+import hash
+import concurrent.futures
+#import bytes
 
 COMMON_PASSWORDS_PATH = 'common_passwords.txt'
 SALTED_BREACH_PATH = "app/scripts/breaches/salted_breach.csv"
@@ -16,11 +21,19 @@ def load_common_passwords():
     return pws
 
 def brute_force_attack(target_hash, target_salt):
-    pass
+    common_pswds = load_common_passwords()
+    
+    for i, pswd in enumerate(common_pswds):
+        res = hash.hash_pbkdf2(pswd[0], target_salt)
+        if target_hash == res:
+            print('matched with common password: ', pswd[0])
+            return pswd[0]
+    return None
 
-def main():
+def main():    
     salted_creds = load_breach(SALTED_BREACH_PATH)
-    brute_force_attack(salted_creds[0][1], salted_creds[0][2])
+    print(salted_creds[52])
+    brute_force_attack(salted_creds[52][1], salted_creds[52][2])
 
 if __name__ == "__main__":
     main()
