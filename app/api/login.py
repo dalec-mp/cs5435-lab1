@@ -8,6 +8,7 @@ from bottle import (
 )
 
 from app.models.user import create_user, get_user
+from app.models.breaches import get_breaches
 from app.models.session import (
     delete_session,
     create_session,
@@ -15,6 +16,32 @@ from app.models.session import (
     logged_in,
 )
 
+from app.util.hash import (
+        hash_pbkdf2,
+        hash_sha256,
+ )
+
+def creds_in_breaches(db, username, password):
+    plaintext_breaches, hashed_breaches, salted_breaches = get_breaches(db, username)
+    for user in plaintext_breaches:
+        if user.username == username and user.password == password:
+            #print('found in plaintext breaches')
+            return True
+    
+    for user in hashed_breaches:
+        hash_pswd = hash_sha256(password)
+        if user.username == username and user.hashed_password == hash_pswd:
+            #print('found in hashed breaches')
+            return True
+    
+    for user in salted_breaches:
+        salt = user.salt
+        salted_hash = hash_pbkdf2(password, salt)
+        if user.username == username and user.salted_password == salted_hash:
+            #print('found in salted breaches')
+            return True
+
+    return False
 
 @get('/login')
 def login():
@@ -39,7 +66,10 @@ def do_login(db):
     elif (request.forms.get("register")):
         if user is not None:
             response.status = 401
-            error = "{} is already taken.".format(username)
+            if creds_in_breaches(db, username, password):
+                error = "username: {} and password found in breaches!".format(username)
+            else:
+                error = "{} is already taken.".format(username)
         else:
             create_user(db, username, password)
     else:
