@@ -32,7 +32,6 @@ def brute_force_attack(target_hash, target_salt):
 
 def main():    
     salted_creds = load_breach(SALTED_BREACH_PATH)
-    print(salted_creds[52])
     brute_force_attack(salted_creds[52][1], salted_creds[52][2])
 
 if __name__ == "__main__":

